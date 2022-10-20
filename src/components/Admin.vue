@@ -134,7 +134,6 @@ export default {
           Token: self.$cookie.get("SESSIONID"),
         },
       }).then(function (response) {
-        console.log(response);
         self.crs_list = response.data["crs_list"];
       });
     },

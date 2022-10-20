@@ -246,8 +246,7 @@ export default {
     },
     // 文件上传成功后的钩子
     uploadSuccess(response) {
-      console.log(response);
-      if (response["header"]["code"] == 200) {
+      if (response["header"]["code"] === 200) {
         this.$message.success("上传成功");
         this.ruleForm.country = response["country"];
         this.ruleForm.province = response["province"];

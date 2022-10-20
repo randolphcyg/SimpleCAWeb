@@ -2,36 +2,29 @@
   <div>
     <active />
     <div class="from">
-      <!-- 用户个人信息 -->
-<!--      <el-row :gutter="20">-->
-<!--        <el-col :span="24">-->
-<!--          <div class="grid-content bg-purple userinfo"></div>-->
-<!--        </el-col>-->
-<!--      </el-row>-->
-      <!-- 证书列表 -->
       <el-row :gutter="20">
         <el-col :span="6" v-for="(i, index) in cers" :key="i.serial_number" class="cerBox">
           <div class="grid-content bg-purple cer" style="padding-bottom: 15px">
             <div class="header">
-              <div v-if="i.statue == 1">
-                <i v-if="i.type == 1" class="el-icon-set-up icon"></i>
-                <i v-if="i.type == 2" class="el-icon-s-check icon"></i>
-                <p v-if="i.type == 1" class="title">代码签名证书（使用中）</p>
-                <p v-if="i.type == 2" class="title">SSL 证书（使用中）</p>
+              <div v-if="i.state === 1">
+                <i v-if="i.type === 1" class="el-icon-set-up icon"></i>
+                <i v-if="i.type === 2" class="el-icon-s-check icon"></i>
+                <p v-if="i.type === 1" class="title">代码签名证书（使用中）</p>
+                <p v-if="i.type === 2" class="title">SSL 证书（使用中）</p>
               </div>
               <!-- 证书被撤销 -->
-              <div v-if="i.statue == 2">
-                <i v-if="i.type == 1" class="el-icon-set-up icon2"></i>
-                <i v-if="i.type == 2" class="el-icon-s-check icon2"></i>
-                <p v-if="i.type == 1" class="title2">代码签名证书（已吊销）</p>
-                <p v-if="i.type == 2" class="title2">SSL 证书（已吊销）</p>
+              <div v-if="i.state === 2">
+                <i v-if="i.type === 1" class="el-icon-set-up icon2"></i>
+                <i v-if="i.type === 2" class="el-icon-s-check icon2"></i>
+                <p v-if="i.type === 1" class="title2">代码签名证书（已吊销）</p>
+                <p v-if="i.type === 2" class="title2">SSL 证书（已吊销）</p>
               </div>
               <!-- 证书过期 -->
-              <div v-if="i.statue == 3">
-                <i v-if="i.type == 1" class="el-icon-set-up icon3"></i>
-                <i v-if="i.type == 2" class="el-icon-s-check icon3"></i>
-                <p v-if="i.type == 1" class="title">代码签名证书（已过期）</p>
-                <p v-if="i.type == 2" class="title">SSL 证书（已过期）</p>
+              <div v-if="i.state === 3">
+                <i v-if="i.type === 1" class="el-icon-set-up icon3"></i>
+                <i v-if="i.type === 2" class="el-icon-s-check icon3"></i>
+                <p v-if="i.type === 1" class="title">代码签名证书（已过期）</p>
+                <p v-if="i.type === 2" class="title">SSL 证书（已过期）</p>
                 i.issuer
               </div>
             </div>
@@ -65,7 +58,7 @@
                   <el-button
                     type="danger"
                     @click="dialogVisible2 = true"
-                    v-if="i.statue == 1"
+                    v-if="i.state === 1"
                     >注销证书</el-button
                   >
                   <el-button type="danger" plain disabled v-else
@@ -84,7 +77,7 @@
                   </p>
                   <span slot="footer" class="dialog-footer">
                     <el-button @click="dialogVisible2 = false">取 消</el-button>
-                    <el-button type="danger" @click="crl(i.serial_number)"
+                    <el-button type="danger" @click="crl(i)"
                       >确认注销</el-button
                     >
                   </span>
@@ -95,7 +88,7 @@
             <el-dialog title="证书详情" :visible="dialogVisible" width="70%">
 
               <el-collapse>
-                <div class="body" v-if="JSON.stringify(cer) != '{}'">
+                <div class="body" v-if="JSON.stringify(cer) !== '{}'">
                   <b>序列号：</b>
                   <p class="line">{{ cer.serial_number.toString(16) }}</p>
                   <br />
@@ -163,7 +156,6 @@ export default {
   mounted() {
     let self = this;
     let token = this.$cookie.get("SESSIONID");
-    console.log(token);
     this.$axios({
       method: "post",
       url: "/user/cert",
@@ -172,7 +164,6 @@ export default {
         Token: token,
       },
     }).then(function (response) {
-      console.log(response);
       self.cers = response.data["certificates"];
       if(self.cers.length > 0) {
         self.cer = self.cers[0]
@@ -186,19 +177,19 @@ export default {
       this.dialogVisible = true;
     },
     // 吊销证书
-    crl(serial) {
+    crl(i) {
       let self = this;
       this.$axios({
         method: "post",
         url: "/ca/revoke",
         data: {
-          serial_number: serial,
+          serial_number: i.serial_number,
         },
         headers: {
           Token: self.$cookie.get("SESSIONID"),
         },
       }).then(function (response) {
-        if (response.data["header"]["code"] == 200) {
+        if (response.data["header"]["code"] === 200) {
           self.$message.success("已吊销");
         }
       });
@@ -293,9 +284,10 @@ export default {
 }
 .el-row {
   margin-bottom: 20px;
-  &:last-child {
-    margin-bottom: 0;
-  }
+}
+.el-row:last-child
+{
+  margin-bottom: 0;
 }
 .el-col {
   border-radius: 4px;
